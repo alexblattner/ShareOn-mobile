@@ -1,19 +1,22 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import Constants from 'expo-constants';
+import Header from './Header.js';
+import Main from './Main';
+import Login from './Login';
 
+const Stack = createStackNavigator();
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen component={Login} name="Login" />
+        <Stack.Screen options={{ headerStyle: { height: 100},headerTitle: props => <Header /> }} name="Main">
+          {props => <Main url='http://192.168.0.13/ShareOn/geters/postsload.php'/>}
+        </Stack.Screen>
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
