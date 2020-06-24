@@ -20,6 +20,7 @@ class Main extends React.Component {
     if(isLoading)
     return <ScrollView style={styles.container}></ScrollView>;
     return <ScrollView style={styles.container}>
+    <Text>{this.props.t}</Text>
     {hits.map(post => (
       <View style={{paddingBottom:10,paddingTop:10}}>
       <Post data={post} comment="true"/>
