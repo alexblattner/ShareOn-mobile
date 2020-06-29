@@ -1,43 +1,50 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import { StyleSheet, Text, View, Image, ImageBackground, Button, Dimensions,TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
-
-class Post extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-  upvote=()=>{
+function Post(props){
+  console.log(props);
+  const [data, setData] = useState({});
+  const [loading,setLoading]=useState(true);
+  useEffect(() => {
+    setData(props.data);
+    setLoading(false);
+  }, []);
+  const upvote=()=>{
     let fd=new FormData();
-    fd.append("key",this.props.data._key);
+    fd.append("key",data._key);
     let xhr = new XMLHttpRequest();
     xhr.open('POST', 'http://192.168.0.13/ShareOn/writers/postupcount.php', true);
-    let t=this;
     xhr.onload = function() {
     if (this.status == 200) {
-      t.props.data.vote=this.response.vote;
-      t.props.data.upvote=this.response.up;
-      t.props.data.downvote=this.response.down;
+      let o=data;
+      let r=JSON.parse(this.response);
+      o['vote']=r.vote;
+      o['upvotes']=r.upvote;
+      o['downvotes']=r.downvote;
+      setData(o);
     }
     };
     xhr.send(fd);
   }
-  downvote=()=>{
+  const downvote=()=>{
     let fd=new FormData();
-    fd.append("key",this.props.data._key);
+    fd.append("key",data._key);
     let xhr = new XMLHttpRequest();
     xhr.open('POST', 'http://192.168.0.13/ShareOn/writers/postdowncount.php', true);
     let t=this;
     xhr.onload = function() {
     if (this.status == 200) {
-      t.props.data.vote=this.response.vote;
-      t.props.data.upvote=this.response.up;
-      t.props.data.downvote=this.response.down;
+      let o=data;
+      o['vote']=this.response.vote;
+      o['upvotes']=this.response.upvote;
+      o['downvotes']=this.response.downvote;
+      setData(o);
     }
     };
     xhr.send(fd);
   }
 
-  timeSince(date) {
+  const timeSince=(date)=> {
   	date*=1000;
     let seconds = Math.floor((new Date() - date) / 1000);
     let interval = Math.floor(seconds / 86400);
@@ -102,7 +109,7 @@ class Post extends React.Component {
     }
     return Math.floor(seconds) + " seconds ago";
   }
-  is_url(str) {
+  const is_url=(str)=> {
     try {
       new URL(str);
     } catch (_) {
@@ -111,44 +118,60 @@ class Post extends React.Component {
 
     return true;
   }
-  render() {
-    const pload="http://192.168.0.13/ShareOn/post-types/"+this.props.data['type']+"/"+this.props.data['frame']['process']+"?key="+this.props.data['_key'];
-    const scroll=(this.props.data['frame']['scroll'])?"yes":"no";
-    const size=(this.props.data['frame']['size']==0)?"":"height='"+this.props.data['frame']['size']+"'";
-    return (
-        <View style={styles.innerPost} key={this.props.data._key}>
-          <View style={styles.row}>
-            <View style={{width:20}} />
-              <View style={styles.picture}>
-                <Image style={{flex: 1,width: null,height: null,resizeMode: 'contain',backgroundColor:"black",borderRadius:100}} source={{uri:this.props.data.profile.picture}}/>
-              </View>
-            <View style={{paddingLeft:10,paddingTop:10}}>
-              <Text style={styles.texts}>By: {this.props.data.profile.name}</Text>
-              <Text style={styles.texts}>Published: {this.timeSince(this.props.data.time)}</Text>
-            </View>
-            <View style={styles.points}>
-              <TouchableOpacity onPress={this.upvote} style={styles.voteButton}>
-                <View style={{height:20,width:20}}>
-                  <Image style={{flex: 1,width: null,height: null,resizeMode: 'contain'}} source={(this.props.data['vote']===1)?require('./icons/upvote1.png'):require('./icons/upvote0.png')  }/>
-                </View>
-                <Text style={voteAmount}>{this.props.data.upvotes}</Text>
-              </TouchableOpacity>
-              <View style={{width:10}} />
-              <TouchableOpacity onPress={this.downvote} style={styles.voteButton}>
-                <View style={{height:20,width:20}}>
-                  <Image style={{flex: 1,width: null,height: null,resizeMode: 'contain'}} source={(this.props.data['vote']===-1)?require('./icons/downvote1.png'):require('./icons/downvote0.png')  }/>
-                </View>
-                <Text style={voteAmount}>{this.props.data.downvotes}</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={{height:35,width:35,paddingTop:15,paddingRight:15}}><Image style={{flex: 1,width: null,height: null,resizeMode: 'contain'}} source={require('./icons/clockwork.png')}/></View>
-          </View>
-            <WebView style={{height:200,alignItems: 'stretch',flex:1,paddingLeft:40}} originWhitelist={['*']} source={{ html: "<iFrame style='height:100%;width:100%' src='"+pload+"' />" }}/>
-            <View style={styles.row}><View style={{height:35,width:35,paddingTop:7.5,paddingBottom:7.5,paddingLeft:15}}><Image style={{flex: 1,width: null,height: null,resizeMode: 'contain'}} source={require('./icons/Comments.png')}/></View></View>
-        </View>
-    );
+  const comment =()=>{
+    props.navigate(data._key);
   }
+  /*if(Object.keys(this.state.user).length === 0 && this.state.user.constructor === Object){
+      fetch('http://192.168.0.13/ShareOn/logCheck.php')
+      .then(d=>d.text())
+        .then(user => this.logSet(user));
+    }
+  }*/
+  if(!loading){
+  const pload="http://192.168.0.13/ShareOn/post-types/"+data['type']+"/"+data['frame']['process']+"?key="+data['_key'];
+  const scroll=(data['frame']['scroll'])?"yes":"no";
+  const size=(data['frame']['size']==0)?"":"height='"+data['frame']['size']+"'";
+  return (
+      <View style={(props.comment==true)?styles.comment:styles.post} key={data._key}>
+        <View style={styles.row}>
+          <View style={{width:20}} />
+            <View style={styles.picture}>
+              <Image style={{flex: 1,width: null,height: null,resizeMode: 'contain',backgroundColor:"black",borderRadius:100}} source={{uri:data.profile.picture}}/>
+            </View>
+          <View style={{paddingLeft:10,paddingTop:10}}>
+            <Text style={styles.texts}>By: {data.profile.name}</Text>
+            <Text style={styles.texts}>Published: {timeSince(data.time)}</Text>
+          </View>
+          <View style={styles.points}>
+            <TouchableOpacity onPress={upvote} style={styles.voteButton}>
+              <View style={{height:20,width:20}}>
+                <Image style={{flex: 1,width: null,height: null,resizeMode: 'contain'}} source={(data['vote']===1)?require('./icons/upvote1.png'):require('./icons/upvote0.png')  }/>
+              </View>
+              <Text style={voteAmount}>{data.upvotes}</Text>
+            </TouchableOpacity>
+            <View style={{width:10}} />
+            <TouchableOpacity onPress={downvote} style={styles.voteButton}>
+              <View style={{height:20,width:20}}>
+                <Image style={{flex: 1,width: null,height: null,resizeMode: 'contain'}} source={(data['vote']===-1)?require('./icons/downvote1.png'):require('./icons/downvote0.png')  }/>
+              </View>
+              <Text style={voteAmount}>{data.downvotes}</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{height:35,width:35,paddingTop:15,paddingRight:15}}><Image style={{flex: 1,width: null,height: null,resizeMode: 'contain'}} source={require('./icons/clockwork.png')}/></View>
+        </View>
+          <WebView style={{height:200,alignItems: 'stretch',flex:1,paddingLeft:40}} originWhitelist={['*']} source={{ html: "<iFrame style='height:100%;width:100%' src='"+pload+"' />" }}/>
+          <TouchableOpacity onPress={comment} style={styles.row}>
+            <View style={{height:35,width:35,paddingTop:7.5,paddingBottom:7.5,paddingLeft:15}}>
+              <Image style={{flex: 1,width: null,height: null,resizeMode: 'contain'}} source={require('./icons/Comments.png')}/>
+            </View>
+          </TouchableOpacity>
+      </View>
+  );
+}else{
+  return <View style={styles.innerPost} />;
 }
+}
+const width = Dimensions.get('window').width;
 const styles = StyleSheet.create({
   points:{
     flexDirection: 'row',
@@ -166,11 +189,14 @@ const styles = StyleSheet.create({
   },
   texts:{fontSize:10},
   picture:{height:50,width:50,borderRadius:100,paddingTop:5},
-  innerPost:{
+  post:{
     backgroundColor:"white",
+  },
+  comment:{
+    backgroundColor:"white",width:width-20,marginLeft:10
   }
 });
-const width = Dimensions.get('window').width;
+
 const voteAmount=StyleSheet.flatten([
   styles.voteAmount,
   styles.texts

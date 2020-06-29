@@ -1,13 +1,34 @@
-import React from 'react';
+import React,{useState,useEffect} from 'react';
 import { StyleSheet, Text, View, Image, ImageBackground,Dimensions } from 'react-native';
+import { useAsyncStorage } from '@react-native-community/async-storage';
 import background from './icons/space.jpg';
 
-export default function App() {
+export default function Header() {
+  const { getItem, setItem } = useAsyncStorage('userBox');
+  const [load,setLoad]=useState(true);
+  const [user, setUser] = useState({});
+  useEffect(() => {
+    readItemFromStorage();
+    setLoad(false);
+  }, []);
+  const readItemFromStorage = async () => {
+    const item = await getItem();
+    setUser(JSON.parse(item)||user); // if item=="null", then just use value
+  };
+  let profile;
+  if(!load){
+    console.log(22222222);
+    console.log(user);
+    profile=<View style={{borderRadius:100,width:30,height:30,alignSelf:"flex-end",background:"white",position:"absolute",top:25,right:10}}>
+              <Image source={require('./icons/logo-white.png')} style={styles.logo}/>
+            </View>;
+  }
   return (
       <ImageBackground source={background} style={styles.background}>
       <View style={styles.logoc}>
       <Image source={require('./icons/logo-white.png')} style={styles.logo} />
       </View>
+      {profile}
       <View style={styles.transHeader}>
         <View style={styles.choices}>
           <Text style={wallselect}>MY WALL</Text>
@@ -33,8 +54,8 @@ const styles = StyleSheet.create({
     resizeMode: 'contain'
   },
   logoc:{
-    height:70,
-    width:200
+    height:70,top:0,
+    width:200,position:"absolute"
   },
   transHeader:{
     height:30,
@@ -42,8 +63,7 @@ const styles = StyleSheet.create({
     width:360,
     flexDirection: 'row',
     justifyContent: "center",
-    alignItems: 'center',
-  },
+    alignItems: 'center',position:"absolute",bottom:0  },
   choices:{
     flexDirection: 'row',
     width:150,height:32,paddingTop:5

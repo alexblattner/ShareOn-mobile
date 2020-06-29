@@ -3,8 +3,6 @@ import { StyleSheet,Text,View,TextInput,TouchableOpacity,Image} from 'react-nati
 import Main from './Main';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { AsyncStorage } from '@react-native-community/async-storage';
-
 class Login extends React.Component {
   constructor(props) {
     super(props);
@@ -23,7 +21,10 @@ class Login extends React.Component {
     let t=this;
     xhr.onload = function() {
     if (this.status == 200) {
-      t.props.log(this.response);
+      console.log(this.response);
+      let o=JSON.parse(this.response);
+      o.password=t.state.password;
+      t.props.log(o);
     }
     };
     xhr.send(fd);
@@ -51,7 +52,6 @@ class Login extends React.Component {
                   placeholderTextColor='rgba(225,225,225,0.7)'
                   value={this.state.password}
                   secureTextEntry/>
-                  <Text>{JSON.stringify(this.state)}</Text>
                   <TouchableOpacity style={styles.buttonContainer}
                        onPress={this.onButtonPress}>
                        <Text style={styles.buttonText}>LOGIN</Text>
